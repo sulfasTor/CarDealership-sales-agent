@@ -61,14 +61,20 @@ def init_embeddings() -> Embeddings:
 
     return embeddings
 
-def run_query(agent, query: str) -> str:
-    final_output = None
-    for event in agent.stream(
-        {"messages": [{"role": "user", "content": query}]},
-        stream_mode="values",
-    ):
-        msg = event["messages"][-1]
-        if msg.role == "assistant" and msg.content:
-            final_output = msg.content  # always overwritten until final message
+def _strip_think(text: str) -> str:
+    if "</think>" in text:
+        return text.split("</think>", 1)[1].lstrip()
+    return text
 
-    return final_output or ""
+def run_query(agent, query: str) -> str:
+    result = agent.invoke(
+        {"messages": [{"role": "user", "content": query}]}
+    )
+
+    messages = result["messages"]
+    ai_messages = [m for m in messages if getattr(m, "type", None) == "ai"]
+    last_ai = ai_messages[-1]
+    text = last_ai.content
+    clean_text = _strip_think(text)
+
+    return clean_text
