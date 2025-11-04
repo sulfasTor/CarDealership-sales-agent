@@ -19,7 +19,7 @@ def init_agent():
         raise Exception("OPENAI_API_KEY is not set")
 
     model = (
-        ChatOllama(model="phi3:mini", temperature=0, validate_model_on_init=True)
+        ChatOllama(model="Qwen3:4b", temperature=0, validate_model_on_init=True)
         if os.environ.get("ENV") == "dev"
         else ChatOpenAI(model="gpt-3.5-turbo")
     )
@@ -55,7 +55,7 @@ def init_agent():
 
 def init_embeddings() -> Embeddings:
     embeddings = (
-        OllamaEmbeddings(model="phi3:mini")
+        OllamaEmbeddings(model="Qwen3:4b")
         if os.environ.get("ENV") == "dev"
         else OpenAIEmbeddings(model="text-embedding-3-large")
     )
