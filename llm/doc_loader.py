@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, List
 import bs4
 from langchain_community.document_loaders import WebBaseLoader, CSVLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -8,7 +8,9 @@ from pathlib import Path
 
 def load_kavak_webpage():
     # Only keep post title, headers, and content from the full HTML.
-    bs4_strainer = bs4.SoupStrainer(class_=("post-title", "post-header", "post-content"))
+    bs4_strainer = bs4.SoupStrainer(
+        class_=("post-title", "post-header", "post-content")
+    )
     loader = WebBaseLoader(
         web_paths=("https://www.kavak.com/mx/blog/sedes-de-kavak-en-mexico",),
         bs_kwargs={"parse_only": bs4_strainer},
@@ -18,17 +20,17 @@ def load_kavak_webpage():
     assert len(docs) == 1
     print(f"Total characters: {len(docs[0].page_content)}")
 
-
     text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=1000,  # chunk size (characters)
-    chunk_overlap=200,  # chunk overlap (characters)
-    add_start_index=True,  # track index in original document
+        chunk_size=1000,  # chunk size (characters)
+        chunk_overlap=200,  # chunk overlap (characters)
+        add_start_index=True,  # track index in original document
     )
     all_splits = text_splitter.split_documents(docs)
 
     print(f"Split blog post into {len(all_splits)} sub-documents.")
 
     return all_splits
+
 
 def load_local_catalog(csv_path: Path):
     loader = CSVLoader(
@@ -37,15 +39,16 @@ def load_local_catalog(csv_path: Path):
 
     catalog = loader.load()
     text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=1000,  # chunk size (characters)
-    chunk_overlap=200,  # chunk overlap (characters)
-    add_start_index=True,  # track index in original document
+        chunk_size=1000,  # chunk size (characters)
+        chunk_overlap=200,  # chunk overlap (characters)
+        add_start_index=True,  # track index in original document
     )
     all_splits = text_splitter.split_documents(catalog)
 
     return all_splits
 
-def load_docs(vector_store: VectorStore, **kwargs) -> List[str]:
+
+def load_docs(vector_store: VectorStore, **kwargs: Any) -> List[str]:
     all_splits = []
     all_splits.append(load_local_catalog(kwargs["csv_path"]))
     all_splits.append(load_kavak_webpage())
