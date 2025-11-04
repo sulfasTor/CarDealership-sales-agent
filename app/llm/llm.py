@@ -5,13 +5,12 @@ from langchain_core.embeddings import Embeddings
 from langchain_openai import OpenAIEmbeddings
 from langchain_ollama import OllamaEmbeddings
 from langchain.tools import tool
-from langchain_core.vectorstores import VectorStore
 from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
 
-from llm.doc_loader import load_docs
-from llm.store import init_store
+from app.llm.doc_loader import load_docs
+from app.llm.store import init_store
 
 
 def init_agent():
@@ -62,17 +61,14 @@ def init_embeddings() -> Embeddings:
 
     return embeddings
 
-
-def test():
-    agent = init_agent()
-
-    query = "Hola?\n\nQue vehiculos estan disponibles?"
-
+def run_query(agent, query: str) -> str:
+    final_output = None
     for event in agent.stream(
         {"messages": [{"role": "user", "content": query}]},
         stream_mode="values",
     ):
-        event["messages"][-1].pretty_print()
+        msg = event["messages"][-1]
+        if msg.role == "assistant" and msg.content:
+            final_output = msg.content  # always overwritten until final message
 
-
-test()
+    return final_output or ""
