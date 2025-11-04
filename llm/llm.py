@@ -24,7 +24,6 @@ def init_agent():
         else ChatOpenAI(model="gpt-3.5-turbo")
     )
 
-    tools = [retrieve_context]
     prompt = (
         "Eres un agente de Kavak que es una empresa mexicana que se desempeña como marketplace en linea del mercado de carros usado."
         "Debes brindar recomendaciones de los autos disponibles en extracto del catálogo dadas las preferencias del cliente."
@@ -38,7 +37,17 @@ def init_agent():
 
     print(f"Loaded {len(docs_ids)} docs.\n")
 
-    # Init agent
+    @tool(response_format="content_and_artifact")
+    def retrieve_context(query: str):
+        """Retrieve information to help answer a query."""
+        retrieved_docs = store.similarity_search(query, k=2)
+        serialized = "\n\n".join(
+            f"Source: {doc.metadata}\nContent: {doc.page_content}"
+            for doc in retrieved_docs
+        )
+        return serialized, retrieved_docs
+
+    tools = [retrieve_context]
     agent = create_agent(model, tools, system_prompt=prompt)
 
     return agent
@@ -52,18 +61,6 @@ def init_embeddings() -> Embeddings:
     )
 
     return embeddings
-
-
-# LLM tools
-@tool(response_format="content_and_artifact")
-def retrieve_context(vector_store: VectorStore, query: str):
-    """Retrieve information to help answer a query."""
-    retrieved_docs = vector_store.similarity_search(query, k=2)
-    serialized = "\n\n".join(
-        (f"Source: {doc.metadata}\nContent: {doc.page_content}")
-        for doc in retrieved_docs
-    )
-    return serialized, retrieved_docs
 
 
 def test():
