@@ -7,7 +7,8 @@ from langchain_ollama import OllamaEmbeddings
 from langchain.tools import tool
 from langchain_core.vectorstores import VectorStore
 from langchain.agents import create_agent
-from langchain.chat_models import init_chat_model
+from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
 
 from llm.doc_loader import load_docs
 from llm.store import init_store
@@ -18,15 +19,14 @@ def init_agent():
         raise Exception("OPENAI_API_KEY is not set")
 
     model = (
-        init_chat_model("phi3:mini")
+        ChatOllama(model="phi3:mini", temperature=0, validate_model_on_init=True)
         if os.environ.get("ENV") == "dev"
-        else init_chat_model("gpt-3.5-turbo")
+        else ChatOpenAI(model="gpt-3.5-turbo")
     )
 
     tools = [retrieve_context]
-    # If desired, specify custom instructions
     prompt = (
-        "Eres un agente de Kavak, empresa mexicana que se dedica como marketplace en line del mercado de carros usado."
+        "Eres un agente de Kavak que es una empresa mexicana que se desempeña como marketplace en linea del mercado de carros usado."
         "Debes brindar recomendaciones de los autos disponibles en extracto del catálogo dadas las preferencias del cliente."
         "Debes otorgar planes de financiamiento tomando como base el enganche, el precio del auto, una tasa de interés del 10% y plazos de financiamiento de entre 3 y 6 años."
     )
@@ -34,7 +34,7 @@ def init_agent():
     # Init store
     embeddings = init_embeddings()
     store = init_store(embeddings)
-    docs_ids = load_docs(store, csv_path="../sample_caso_ai_engineer.csv")
+    docs_ids = load_docs(store, csv_path="sample_caso_ai_engineer.csv")
 
     print(f"Loaded {len(docs_ids)} docs.\n")
 
@@ -46,9 +46,9 @@ def init_agent():
 
 def init_embeddings() -> Embeddings:
     embeddings = (
-        OpenAIEmbeddings(model="text-embedding-3-large")
+        OllamaEmbeddings(model="phi3:mini")
         if os.environ.get("ENV") == "dev"
-        else OllamaEmbeddings(model="phi3:mini")
+        else OpenAIEmbeddings(model="text-embedding-3-large")
     )
 
     return embeddings
@@ -64,3 +64,18 @@ def retrieve_context(vector_store: VectorStore, query: str):
         for doc in retrieved_docs
     )
     return serialized, retrieved_docs
+
+
+def test():
+    agent = init_agent()
+
+    query = "Hola?\n\nQue vehiculos estan disponibles?"
+
+    for event in agent.stream(
+        {"messages": [{"role": "user", "content": query}]},
+        stream_mode="values",
+    ):
+        event["messages"][-1].pretty_print()
+
+
+test()

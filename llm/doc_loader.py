@@ -17,7 +17,6 @@ def load_kavak_webpage():
     )
     docs = loader.load()
 
-    assert len(docs) == 1
     print(f"Total characters: {len(docs[0].page_content)}")
 
     text_splitter = RecursiveCharacterTextSplitter(
@@ -50,8 +49,8 @@ def load_local_catalog(csv_path: Path):
 
 def load_docs(vector_store: VectorStore, **kwargs: Any) -> List[str]:
     all_splits = []
-    all_splits.append(load_local_catalog(kwargs["csv_path"]))
-    all_splits.append(load_kavak_webpage())
+    all_splits.extend(load_local_catalog(kwargs["csv_path"]))
+    all_splits.extend(load_kavak_webpage())
 
     document_ids = vector_store.add_documents(documents=all_splits)
 
