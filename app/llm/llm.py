@@ -13,6 +13,11 @@ from app.llm.doc_loader import load_docs
 from app.llm.store import init_store
 
 
+from collections import defaultdict
+
+memory_store = defaultdict(list)
+
+
 def init_agent():
     if not os.environ.get("OPENAI_API_KEY"):
         raise Exception("OPENAI_API_KEY is not set")
@@ -61,20 +66,28 @@ def init_embeddings() -> Embeddings:
 
     return embeddings
 
+
 def _strip_think(text: str) -> str:
     if "</think>" in text:
         return text.split("</think>", 1)[1].lstrip()
     return text
 
-def llm_run_query(agent, query: str) -> str:
-    result = agent.invoke(
-        {"messages": [{"role": "user", "content": query}]}
-    )
 
-    messages = result["messages"]
-    ai_messages = [m for m in messages if getattr(m, "type", None) == "ai"]
-    last_ai = ai_messages[-1]
-    text = last_ai.content
+def llm_run_query(agent, query: str, sender: str) -> str:
+    history = memory_store[sender]
+
+    messages = [{"role": "system", "content": "Recuerda el contexto previo con este cliente."}]
+    for h in history[-5:]:
+        messages.append({"role": "user", "content": h["user"]})
+        messages.append({"role": "assistant", "content": h["assistant"]})
+
+    messages.append({"role": "user", "content": query})
+
+    result = agent.invoke({"messages": messages})
+    ai_messages = [m for m in result["messages"] if getattr(m, "type", None) == "ai"]
+    text = ai_messages[-1].content
     clean_text = _strip_think(text)
+
+    memory_store[sender].append({"user": query, "assistant": clean_text})
 
     return clean_text

@@ -1,5 +1,4 @@
 from fastapi import FastAPI, Request, Response
-from pydantic import BaseModel
 from app.llm.llm import init_agent, llm_run_query
 from twilio.twiml.messaging_response import MessagingResponse
 from dotenv import load_dotenv
@@ -17,9 +16,8 @@ async def ask(request: Request):
     form = await request.form()
     body = form.get("Body", "")
     sender = form.get("From", "")
-    wa_id = form.get("WaId", "")
 
-    output = llm_run_query(agent, body)
+    output = llm_run_query(agent, str(body), str(sender))
 
     resp = MessagingResponse()
     resp.message(output)
