@@ -66,7 +66,7 @@ def _strip_think(text: str) -> str:
         return text.split("</think>", 1)[1].lstrip()
     return text
 
-def run_query(agent, query: str) -> str:
+def llm_run_query(agent, query: str) -> str:
     result = agent.invoke(
         {"messages": [{"role": "user", "content": query}]}
     )
