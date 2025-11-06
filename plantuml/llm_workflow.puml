@@ -1,0 +1,44 @@
+@startuml
+!include <C4/C4_Component>
+
+Container_Boundary(kavak_backend, "Backend Kavak WhatsApp") {
+
+  Component(llm_run, "llm_run_query()", "Orquestador", "Construye mensajes (system + historial + usuario) y llama al agente")
+  Component(mem_store, "Short Memory/Historial", "In-memory", "Historial por sender (últimas interacciones)")
+
+  Component(agent, "Kavak Agent", "LangChain Agent", "create_agent(model, tools, middlewares, system_prompt)")
+
+  Component(prompt_sys, "System Prompt Kavak", "Prompt", "Rol del agente: solo autos Kavak, formataje de WhatsApp , financiamiento 10%, etc.")
+
+  Component(model_main, "LLM principal", "ChatOpenAI", "gpt-3.5-turbo")
+
+  Component(tool_ctx, "Tool: retrieve_context", "LangChain Tool", "Busca en InMemoryStore por similitud para catálogo de autos (RAG)")
+
+  Component(mw_pii_email, "PIIMiddleware (email)", "Middleware input", "Enmascara correos electrónicos")
+  Component(mw_pii_cc, "PIIMiddleware (credit_card)", "Middleware input", "Enmascara tarjetas")
+  Component(mw_content, "ContentFilterMiddleware", "Middleware before_agent", "Bloquea insultos / palabras prohibidas del dataset banned_words.txt")
+  Component(mw_safety, "SafetyGuardrailMiddleware", "Middleware after_agent", "Evalúa SAFE/UNSAFE")
+
+  Component(openai_guard_client, "OpenAI Client (Guardrail)", "OpenAI() directo", "Llama gpt-4-turbo para clasificar")
+  Component(vec_store, "InMemoryStore", "Vector store in-memory", "Catálogo + embeddings")
+}
+
+Rel(llm_run, mem_store, "Lee/escribe historial")
+Rel(llm_run, agent, "inferencia")
+
+Rel(agent, prompt_sys, "Usa como system_prompt")
+
+Rel(agent, mw_pii_email, "Middleware input")
+Rel(agent, mw_pii_cc, "Middleware input")
+Rel(agent, mw_content, "Middleware before_agent")
+Rel(agent, mw_safety, "Middleware after_agent")
+
+Rel(agent, model_main, "Genera respuesta principal")
+Rel(agent, tool_ctx, "Invoca como tool")
+
+Rel(tool_ctx, vec_store, "RAG")
+
+Rel(mw_safety, openai_guard_client, "Evalúa respuesta SAFE/UNSAFE")
+Rel(openai_guard_client, vec_store, "No accede")
+
+@enduml

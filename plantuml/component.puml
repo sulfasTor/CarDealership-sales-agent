@@ -1,0 +1,34 @@
+!include <C4/C4_Component>
+
+LAYOUT_LEFT_RIGHT()
+
+Person(customer, "Cliente", "Usuario de WhatsApp que chatea con Kavak")
+
+System_Ext(whatsapp, "WhatsApp", "App de mensajería")
+System_Ext(twilio, "Twilio", "Webhook WhatsApp Business")
+
+System_Boundary(kavak_backend, "Backend Kavak WhatsApp") {
+Container(api, "FastAPI App", "Python/FastAPI", "Expone /ask, integra con Twilio")
+Container(agent_runner, "llm_run_query()", "Función orquestadora", "Construye historial, llama al agente y persiste memoria")
+Container(agent, "Kavak Agent", "LangChain Agent", "Orquesta LLM + tools + middlewares")
+ContainerDb(mem_store, "Short Memory/Historial", "In-memory dict", "Historial corto por usuario (últimos mensajes)")
+ContainerDb(vec_store, "InMemoryStore", "In-memory vector store", "Embeddings del catálogo (similitud)")
+}
+
+System_Ext(openai_llm, "OpenAI Chat API", "gpt-3.5-turbo / gpt-4-turbo")
+System_Ext(openai_guard, "OpenAI Guardrail API", "gpt-4-turbo SAFE/UNSAFE")
+
+Rel(customer, whatsapp, "Envía/recibe mensajes")
+Rel(whatsapp, twilio, "Entrega mensajes", "Webhook")
+Rel(twilio, api, "POST /ask (mensaje, sender)", "HTTP")
+
+Rel(api, agent_runner, "Llama llm_run_query(query, sender)")
+Rel(agent_runner, mem_store, "Lee/escribe historial")
+Rel(agent_runner, agent, "inferencia")
+
+Rel(agent, vec_store, "RAG", "retrieve_context tool")
+Rel(agent, openai_llm, "Inferencia LLM")
+
+Rel(agent, openai_guard, "Clasificación SAFE/UNSAFE", "via SafetyGuardrailMiddleware")
+
+Rel(agent_runner, api, "Devuelve respuesta final a Twilio/WhatsApp")

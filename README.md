@@ -18,7 +18,9 @@
 
 
 ## Diagrama de componentes
+![image](component.png)
 
 ## Diagrama de pipeline de agente LLM
+![image](llm_workflow.png)
 
 ## Roadmap propuesto
