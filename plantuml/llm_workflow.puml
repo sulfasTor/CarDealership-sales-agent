@@ -1,14 +1,14 @@
 @startuml
 !include <C4/C4_Component>
 
-Container_Boundary(kavak_backend, "Backend Kavak WhatsApp") {
+Container_Boundary(CarDealership_backend, "Backend CarDealership WhatsApp") {
 
   Component(llm_run, "llm_run_query()", "Orquestador", "Construye mensajes (system + historial + usuario) y llama al agente")
   Component(mem_store, "Short Memory/Historial", "In-memory", "Historial por sender (últimas interacciones)")
 
-  Component(agent, "Kavak Agent", "LangChain Agent", "create_agent(model, tools, middlewares, system_prompt)")
+  Component(agent, "CarDealership Agent", "LangChain Agent", "create_agent(model, tools, middlewares, system_prompt)")
 
-  Component(prompt_sys, "System Prompt Kavak", "Prompt", "Rol del agente: solo autos Kavak, formataje de WhatsApp , financiamiento 10%, etc.")
+  Component(prompt_sys, "System Prompt CarDealership", "Prompt", "Rol del agente: solo autos CarDealership, formataje de WhatsApp , financiamiento 10%, etc.")
 
   Component(model_main, "LLM principal", "ChatOpenAI", "gpt-3.5-turbo")
 

@@ -1,4 +1,4 @@
-# Kavak LLM agent
+# CarDealership LLM agent
 
 ## Este agente soporta las siguientes caracteristicas:
 - Apalanca uso de RAG para injeccion de contexto sobre catalogo
@@ -24,3 +24,25 @@
 ![image](llm_workflow.png)
 
 ## Roadmap propuesto
+## EPIC: CI/CD
+Crear workflow en github actions para el siguiente flujo en caso de push a main y PR abierto:
+- Linting de codigo
+- Correr checks y escaners de codigo (sonarqube+trivy)
+- Correr pruebas unitarias
+
+Crear workflow en github actions para el siguiente flujo en caso de push a main:
+- Desplegar API en ambiente dev
+- Correr pruebas de integracion
+- Correr pruebas de no regresion
+
+### EPIC: Despliegue en produccion
+- Desplegar en AWS ECS como container con estrategia canary.
+- Exponer ALB que sirva API del container en el endpoint /ask.
+- Crear CNAME de ALB endpoint en route53 con una politica de latencia para region mx-central-1 y us-west-1
+- Registrar CNAME en Twilio como webhook de Whatsapp.
+
+## EPIC: Tests de no regresion
+- Desplegar en dev versiones A/B.
+- Hacer A/B testing con benchmark y almacenar resultados en dataset.
+- Enviar resultados a un modelo "LLM as judge". Comparar respuestas y dar comparativa. Se detecta en B un retroceso en comparacion a A?
+- Evaluar desempeno de B en cuanto a las expectativas con mismo LLM as judge, tambien usar Human Interaction.

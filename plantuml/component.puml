@@ -2,15 +2,15 @@
 
 LAYOUT_LEFT_RIGHT()
 
-Person(customer, "Cliente", "Usuario de WhatsApp que chatea con Kavak")
+Person(customer, "Cliente", "Usuario de WhatsApp que chatea con CarDealership")
 
 System_Ext(whatsapp, "WhatsApp", "App de mensajería")
 System_Ext(twilio, "Twilio", "Webhook WhatsApp Business")
 
-System_Boundary(kavak_backend, "Backend Kavak WhatsApp") {
+System_Boundary(CarDealership_backend, "Backend CarDealership WhatsApp") {
 Container(api, "FastAPI App", "Python/FastAPI", "Expone /ask, integra con Twilio")
 Container(agent_runner, "llm_run_query()", "Función orquestadora", "Construye historial, llama al agente y persiste memoria")
-Container(agent, "Kavak Agent", "LangChain Agent", "Orquesta LLM + tools + middlewares")
+Container(agent, "CarDealership Agent", "LangChain Agent", "Orquesta LLM + tools + middlewares")
 ContainerDb(mem_store, "Short Memory/Historial", "In-memory dict", "Historial corto por usuario (últimos mensajes)")
 ContainerDb(vec_store, "InMemoryStore", "In-memory vector store", "Embeddings del catálogo (similitud)")
 }

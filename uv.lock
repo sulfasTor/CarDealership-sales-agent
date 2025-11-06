@@ -588,7 +588,7 @@ wheels = [
 ]
 
 [[package]]
-name = "kavak-agent"
+name = "CarDealership-agent"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

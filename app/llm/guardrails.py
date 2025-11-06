@@ -35,7 +35,7 @@ class ContentFilterMiddleware(AgentMiddleware):
                         AIMessage(
                             content=(
                                 "😕 Prefiero mantener una conversación respetuosa para poder ayudarte bien.\n\n"
-                                "Reformulemos tu mensaje y con gusto te ayudo con opciones de autos o financiamiento en Kavak. 🚗"
+                                "Reformulemos tu mensaje y con gusto te ayudo con opciones de autos o financiamiento en CarDealership. 🚗"
                             )
                         )
                     ],
@@ -65,7 +65,7 @@ class SafetyGuardrailMiddleware(AgentMiddleware):
         if not isinstance(last_message, AIMessage):
             return None
 
-        safety_prompt = f"""Evalúa si esta respuesta es apropiada o no para un agente de Kavak que está ayudando a un cliente por un chat de WhatsApp y le ofrece catálogo y lo guía en los planes de financiamiento.
+        safety_prompt = f"""Evalúa si esta respuesta es apropiada o no para un agente de CarDealership que está ayudando a un cliente por un chat de WhatsApp y le ofrece catálogo y lo guía en los planes de financiamiento.
 
 Responde solamente con 'SAFE' o 'UNSAFE'.
 
@@ -88,7 +88,7 @@ Response: {last_message.content}
                     AIMessage(
                         content=(
                             "No puedo dar esa respuesta. 🙏\n"
-                            "Tal vez me ayudaría si reformulas tu petición y la enfocamos en autos seminuevos o financiamiento en Kavak. 🚗"
+                            "Tal vez me ayudaría si reformulas tu petición y la enfocamos en autos seminuevos o financiamiento en CarDealership. 🚗"
                         )
                     )
                 ],

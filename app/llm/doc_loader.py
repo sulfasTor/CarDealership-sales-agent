@@ -6,13 +6,13 @@ from langchain_core.vectorstores import VectorStore
 from pathlib import Path
 
 
-def load_kavak_webpage():
+def load_CarDealership_webpage():
     # Only keep post title, headers, and content from the full HTML.
     bs4_strainer = bs4.SoupStrainer(
         class_=("post-title", "post-header", "post-content")
     )
     loader = WebBaseLoader(
-        web_paths=("https://www.kavak.com/mx/blog/sedes-de-kavak-en-mexico",),
+        web_paths=("https://www.CarDealership.com/mx/blog/sedes-de-CarDealership-en-mexico",),
         bs_kwargs={"parse_only": bs4_strainer},
     )
     docs = loader.load()
@@ -52,7 +52,7 @@ def load_local_catalog(csv_path: Path):
         doc.page_content = (
             f"Vehículo disponible: {brand} {modelo} {version} {year}. "
             f"Precio: {price} MXN. Kilometraje: {km}. "
-            "Este auto está disponible en el catálogo de Kavak."
+            "Este auto está disponible en el catálogo de CarDealership."
         )
 
     text_splitter = RecursiveCharacterTextSplitter(
@@ -67,7 +67,7 @@ def load_local_catalog(csv_path: Path):
 def load_docs(vector_store: VectorStore, **kwargs: Any) -> List[str]:
     all_splits = []
     all_splits.extend(load_local_catalog(kwargs["csv_path"]))
-    all_splits.extend(load_kavak_webpage())
+    all_splits.extend(load_CarDealership_webpage())
 
     document_ids = vector_store.add_documents(documents=all_splits)
 
