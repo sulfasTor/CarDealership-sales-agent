@@ -21,7 +21,6 @@ class ContentFilterMiddleware(AgentMiddleware):
         if not messages:
             return None
 
-        # buscamos el ÚLTIMO mensaje humano
         human_messages = [m for m in messages if getattr(m, "type", None) == "human"]
         if not human_messages:
             return None
@@ -31,7 +30,6 @@ class ContentFilterMiddleware(AgentMiddleware):
 
         for keyword in self.banned_keywords:
             if keyword and keyword in content:
-                # devuelve AIMessage, porque luego tú filtras por type == "ai"
                 return {
                     "messages": [
                         AIMessage(
