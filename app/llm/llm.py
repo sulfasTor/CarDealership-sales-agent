@@ -82,7 +82,7 @@ def init_agent():
             banned_keywords=_BANNED_KEYWORDS,
         ),
         # After agent filters
-        # SafetyGuardrailMiddleware(),
+        SafetyGuardrailMiddleware(),
     ]
     agent = create_agent(model, tools, system_prompt=prompt, middleware=middlewares)
 

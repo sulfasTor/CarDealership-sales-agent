@@ -3,7 +3,7 @@ from typing import Any, List
 from langchain.agents.middleware import AgentMiddleware, AgentState, hook_config
 from langgraph.runtime import Runtime
 from langchain_core.messages import AIMessage
-from langchain_openai import ChatOpenAI
+from openai import OpenAI
 
 
 class ContentFilterMiddleware(AgentMiddleware):
@@ -46,9 +46,10 @@ class ContentFilterMiddleware(AgentMiddleware):
 
 
 class SafetyGuardrailMiddleware(AgentMiddleware):
-    def __init__(self):
+    def __init__(self, model_name: str = "gpt-4o-mini"):
         super().__init__()
-        self.safety_model = ChatOpenAI(model="gpt-4-turbo", temperature=0)
+        self.client = OpenAI()
+        self.model_name = model_name
 
     @hook_config(can_jump_to=["end"])
     def after_agent(
@@ -70,9 +71,17 @@ Responde solamente con 'SAFE' o 'UNSAFE'.
 
 Response: {last_message.content}
 """
-        result = self.safety_model.invoke(safety_prompt)
 
-        verdict = (result.content or "").upper()
+        resp = self.client.chat.completions.create(
+            model=self.model_name,
+            messages=[
+                {"role": "system", "content": "Eres un clasificador de seguridad."},
+                {"role": "user", "content": safety_prompt},
+            ],
+            max_tokens=3,
+        )
+
+        verdict = (resp.choices[0].message.content or "").strip().upper()
         if "UNSAFE" in verdict:
             return {
                 "messages": [
