@@ -8,14 +8,21 @@ from langchain.tools import tool
 from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
+from langchain.agents.middleware import PIIMiddleware
 
 from app.llm.doc_loader import load_docs
 from app.llm.store import init_store
+from app.llm.guardrails import (
+    ContentFilterMiddleware,
+    SafetyGuardrailMiddleware,
+    load_banned_keywords,
+)
 
 
 from collections import defaultdict
 
 memory_store = defaultdict(list)
+_BANNED_KEYWORDS = load_banned_keywords()
 
 
 def init_agent():
@@ -43,7 +50,7 @@ def init_agent():
 
     embeddings = init_embeddings()
     store = init_store(embeddings)
-    docs_ids = load_docs(store, csv_path="sample_caso_ai_engineer.csv")
+    docs_ids = load_docs(store, csv_path="./datasets/sample_caso_ai_engineer.csv")
 
     print(f"Loaded {len(docs_ids)} docs.\n")
 
@@ -58,7 +65,26 @@ def init_agent():
         return serialized, retrieved_docs
 
     tools = [retrieve_context]
-    agent = create_agent(model, tools, system_prompt=prompt)
+    middlewares = [
+        # Common LLM guardrails for user input
+        PIIMiddleware(
+            "email",
+            strategy="redact",
+            apply_to_input=True,
+        ),
+        PIIMiddleware(
+            "credit_card",
+            strategy="mask",
+            apply_to_input=True,
+        ),
+        # Before agent filters
+        ContentFilterMiddleware(
+            banned_keywords=_BANNED_KEYWORDS,
+        ),
+        # After agent filters
+        SafetyGuardrailMiddleware(),
+    ]
+    agent = create_agent(model, tools, system_prompt=prompt, middleware=middlewares)
 
     return agent
 
@@ -82,7 +108,9 @@ def _strip_think(text: str) -> str:
 def llm_run_query(agent, query: str, sender: str) -> str:
     history = memory_store[sender]
 
-    messages = [{"role": "system", "content": "Recuerda el contexto previo con este cliente."}]
+    messages = [
+        {"role": "system", "content": "Recuerda el contexto previo con este cliente."}
+    ]
     for h in history[-5:]:
         messages.append({"role": "user", "content": h["user"]})
         messages.append({"role": "assistant", "content": h["assistant"]})
